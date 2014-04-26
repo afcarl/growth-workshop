@@ -6,6 +6,7 @@ from datetime import datetime,timedelta
 from sklearn.linear_model import LogisticRegression
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import func
+from pandas import DataFrame
 from util import occurred_in_last_k_days
 
 db = create_engine('sqlite:///forjar.db')
@@ -55,6 +56,18 @@ def user_activity_in_last_k_days(threshold):
     print type(df)
     return df
 
+
+
+def query_to_df(session,query):
+    """
+    Convert an sql query to a pandas data frame
+    """
+    result = session.execute(query)
+    d = DataFrame(result.fetchall())
+    d.columns = result.keys()
+    return d
+
+
 def user_visited_in_last_k_days(threshold):
     now = datetime.utcnow()
     days = now - timedelta(days=threshold)
@@ -73,28 +86,10 @@ def user_visited_in_last_k_days(threshold):
 
 #df =  user_visited_in_last_k_days(90)
 
-q = session.query(Users).join(Event).add_entity(Event)
+q = session.query(Users)
 
 df = query_to_df(session,q)
 
-
-
-event_types = ['like','bought','share']
-
-
-def is_last_90_days(group):
-    return occurred_in_last_k_days(group,90)
-
-def return_self(group):
-    return group
-
-def return_id(group):
-    return group[0]
-
-
-df['Event_date'] =  df.Event_date.apply(is_last_90_days)
-df = df.drop(['Event_id','Event_User_Id','Users_Created_Date','Event_Meal_Id'],1)
-df = df.groupby(['Users_id'])['Event_date'].aggregate(np.sum).reset_index()
 print df
 #groups = df.groupby(['Users_id','Event_Type','Event_date']).unique()
 #print groups
