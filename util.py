@@ -149,6 +149,11 @@ def vectorize(df,label_column):
     inputs = df[feature_names].index
     return inputs
 
+def vectorize_index(df,label_column):
+    feature_names = {f for f in df.columns.values if f != label_column}
+    return feature_names
+
+
 def vectorize_label(df,label_column,num_labels,target_outcome):
     """
     Vectorize input features wrt a label column.
